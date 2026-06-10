@@ -39,7 +39,7 @@ generation (`/rag/ask`) — this is what makes retrieval-only metrics and the de
 | Vector store | ChromaDB | Apache 2.0 |
 | Embeddings / reranker | sentence-transformers | Apache 2.0 |
 | PDF extraction | pypdfium2 | Apache 2.0 |
-| Default LLM | Qwen2.5 3B via Ollama | Apache 2.0 |
+| Default LLM | Qwen2.5-VL 3B via Ollama | Apache 2.0 |
 | Frontend | Streamlit | Apache 2.0 |
 | Charts | Plotly / Matplotlib | MIT / BSD |
 
@@ -53,7 +53,7 @@ used** — it is AGPL-3.0; `pypdfium2` (Apache 2.0) replaces it.
 1. **Python 3.10+**
 2. **Ollama** — install from [ollama.com](https://ollama.com), then pull the default model:
    ```bash
-   ollama pull qwen2.5:3b
+   ollama pull qwen2.5vl:3b
    ```
 
 ---
@@ -121,7 +121,7 @@ Every field below is an experiment variable, captured by `PipelineConfig`:
 | Embedding model | `all-MiniLM-L6-v2` · `bge-small-en-v1.5` |
 | Retrieval | top_k · similarity threshold (cosine) |
 | Reranking | off · cross-encoder (Phase 4) |
-| LLM | Ollama `qwen2.5:3b` · Gemini (demo, Phase 8) |
+| LLM | Ollama `qwen2.5vl:3b` · Gemini (demo, Phase 8) |
 
 Two hashes drive reproducibility and index caching: `index_hash` (chunking + embedding) keys
 the ChromaDB collection so sweeps over retrieval/LLM settings reuse an existing index;

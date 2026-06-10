@@ -19,7 +19,7 @@ REGISTRY_PATH: Path = STORAGE_DIR / "documents.json"
 
 # Ollama (local default LLM)
 OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-DEFAULT_OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
+DEFAULT_OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "qwen2.5vl:3b")
 
 
 def ensure_storage_dirs() -> None:

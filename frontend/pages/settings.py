@@ -18,7 +18,7 @@ DEFAULT_CONFIG: dict = {
     "rerank": False,
     "reranker_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
     "llm_provider": "ollama",
-    "llm_model": "qwen2.5:3b",
+    "llm_model": "qwen2.5vl:3b",
 }
 
 _EMBEDDING_MODELS = [

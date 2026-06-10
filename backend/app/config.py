@@ -46,7 +46,7 @@ class PipelineConfig:
 
     # ── llm ──
     llm_provider: LLMProviderName = "ollama"
-    llm_model: str = "qwen2.5:3b"
+    llm_model: str = "qwen2.5vl:3b"
 
     def validate(self) -> None:
         """Raise ``ValueError`` if the configuration is internally inconsistent.

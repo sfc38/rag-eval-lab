@@ -23,7 +23,7 @@ class OllamaProvider(LLMProvider):
 
         Args:
             base_url: Ollama server base URL, e.g. ``http://localhost:11434``.
-            model: Model tag to use, e.g. ``qwen2.5:3b``.
+            model: Model tag to use, e.g. ``qwen2.5vl:3b``.
             timeout: Request timeout in seconds.
         """
         self._base_url = base_url.rstrip("/")

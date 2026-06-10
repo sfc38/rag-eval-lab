@@ -23,7 +23,7 @@ class ConfigModel(BaseModel):
     rerank: bool = False
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     llm_provider: str = "ollama"
-    llm_model: str = "qwen2.5:3b"
+    llm_model: str = "qwen2.5vl:3b"
 
     def to_pipeline_config(self) -> PipelineConfig:
         """Convert to a validated :class:`PipelineConfig`.
