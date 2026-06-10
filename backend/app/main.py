@@ -25,12 +25,17 @@ from app import settings
 from app.config import PipelineConfig
 from app.document_processing.cleaners import clean_text
 from app.document_processing.loaders import SUPPORTED_SUFFIXES, load_text
+from app.eval import artifacts
+from app.eval.dataset import load_dataset
+from app.eval.retrieval_eval import evaluate_retrieval
 from app.rag import rag_pipeline
 from app.registry import DocumentRecord, DocumentRegistry
 from app.schemas import (
     AskRequest,
     AskResponse,
     DocumentInfo,
+    EvalRunRequest,
+    EvalRunResponse,
     IndexRequest,
     IndexResponse,
     RetrievedChunkModel,
@@ -277,6 +282,75 @@ def rag_ask(request: AskRequest) -> AskResponse:
         retrieval_ms=result.retrieval_ms,
         generation_ms=result.generation_ms,
     )
+
+
+@app.post("/eval/run")
+def eval_run(request: EvalRunRequest) -> EvalRunResponse:
+    """Run retrieval-only evaluation of a config against the golden dataset.
+
+    Builds the index on demand if needed, then computes recall@k / MRR / nDCG@k per question
+    and persists the run under ``results/runs/<run_id>/``.
+
+    Args:
+        request: Document id, dataset path, optional dataset doc filter, config, and k-values.
+
+    Returns:
+        EvalRunResponse: The run id and aggregate summary.
+
+    Raises:
+        HTTPException: 404 if the document is unknown; 400 on dataset/index errors.
+    """
+    record = registry.get(request.document_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    config = request.config.to_pipeline_config()
+    try:
+        records = load_dataset(Path(request.dataset_path), request.dataset_document_id)
+    except (FileNotFoundError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=f"Dataset error: {exc}") from exc
+    if not records:
+        raise HTTPException(status_code=400, detail="No matching golden records to evaluate.")
+
+    _ensure_indexed(record, config)
+    try:
+        result = evaluate_retrieval(
+            store, request.document_id, config.index_hash(), records, config,
+            tuple(request.k_values),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return EvalRunResponse(run_id=result.run_id, summary=result.summary)
+
+
+@app.get("/eval/runs")
+def eval_list_runs() -> list[dict]:
+    """List the summaries of all past evaluation runs (newest first).
+
+    Returns:
+        list[dict]: One ``summary.json`` per run.
+    """
+    return artifacts.list_runs()
+
+
+@app.get("/eval/runs/{run_id}")
+def eval_get_run(run_id: str) -> dict:
+    """Return a single run's summary, config, and per-question rows.
+
+    Args:
+        run_id: The run identifier.
+
+    Returns:
+        dict: ``{"summary", "config", "rows"}``.
+
+    Raises:
+        HTTPException: 404 if the run does not exist.
+    """
+    run = artifacts.load_run(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found.")
+    return run
 
 
 def _ensure_indexed(record: DocumentRecord, config: PipelineConfig) -> None:

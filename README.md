@@ -9,9 +9,10 @@ The differentiator is not the chat demo — it is the **evaluation harness, the 
 findings, and the failure-analysis tooling**. Everything runs locally and free
 (Ollama + sentence-transformers + ChromaDB).
 
-> **Status:** Phase 1 (RAG MVP) complete. Evaluation harness, benchmarks, and the retrieval
-> debugger arrive in subsequent phases — see the roadmap below. Headline findings will be
-> published here as each experiment is run.
+> **Status:** Phase 2 complete — the retrieval evaluation harness (recall@k, MRR, nDCG via
+> evidence-span matching) and `/eval/*` endpoints are in. The experiment sweep, reranking,
+> answer-quality judging, and the retrieval debugger arrive in subsequent phases. Headline
+> findings will be published here as each experiment is run.
 
 ---
 
@@ -105,8 +106,40 @@ backend when deployed.
 | DELETE | `/documents/{id}` | Delete a document and its indexes |
 | POST | `/rag/retrieve` | Retrieval only — chunks + scores (powers the debugger) |
 | POST | `/rag/ask` | Retrieve + prompt + generate — answer with sources |
+| POST | `/eval/run` | Retrieval-only evaluation against the golden dataset |
+| GET | `/eval/runs` | List past evaluation runs (summaries) |
+| GET | `/eval/runs/{run_id}` | Full results for one run (summary + per-question rows) |
 
-Evaluation endpoints (`/eval/run`, `/eval/runs`) are added in Phase 2+.
+### Evaluation methodology (Phase 2)
+
+Retrieval is scored without manual chunk labeling. Each golden record carries verbatim
+**evidence spans**; a chunk is **relevant** if it contains (or substantially overlaps) any span.
+Per question we compute:
+
+- **recall@k** (k = 1, 3, 5, 10) — fraction of relevant chunks found in the top k
+- **MRR** — reciprocal rank of the first relevant chunk
+- **nDCG@k** — rank-weighted relevance gain
+
+Answerable and unanswerable questions are reported separately; unanswerable questions (≈10% of
+the dataset) are an answer-side concern measured in Phase 5. Every run is persisted under
+`results/runs/<run_id>/` as `config.json`, `results.csv`, and `summary.json` — reproducible and
+diffable.
+
+A small **dev sample** (`eval_data/sample/`) ships for development. The portfolio-grade golden
+dataset (2–3 public documents, 50–100 manually verified records) is the next deliverable.
+
+#### Run an evaluation
+```bash
+# 1. upload the sample doc (note the returned document_id)
+curl -s -F "file=@eval_data/sample/sample_rag_overview.txt" \
+  http://localhost:8000/documents/upload
+# 2. evaluate (substitute the document_id)
+curl -s -X POST http://localhost:8000/eval/run -H "Content-Type: application/json" -d '{
+  "document_id": "<id>",
+  "dataset_path": "../eval_data/sample/golden_qa.jsonl",
+  "dataset_document_id": "sample_rag_overview"
+}'
+```
 
 ---
 
@@ -132,7 +165,7 @@ the ChromaDB collection so sweeps over retrieval/LLM settings reuse an existing 
 ## Roadmap
 
 1. **RAG MVP** — upload → index → ask with sources ✅
-2. Golden QA dataset + retrieval metrics (recall@k, MRR, nDCG)
+2. **Retrieval metrics** (recall@k, MRR, nDCG) + `/eval/*` + dev sample dataset ✅
 3. Experiment runner + chunking sweep → **Finding #1**
 4. Cross-encoder reranking → **Finding #2** (quality vs latency)
 5. Answer-quality eval (LLM-as-judge: faithfulness, relevance, abstention) → **Finding #3**

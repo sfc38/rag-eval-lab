@@ -106,3 +106,20 @@ class DocumentInfo(BaseModel):
     char_count: int
     status: str
     indexes: dict[str, int]
+
+
+class EvalRunRequest(BaseModel):
+    """Request body for ``POST /eval/run`` (retrieval-only evaluation)."""
+
+    document_id: str
+    dataset_path: str
+    dataset_document_id: str | None = None  # filter dataset to this source doc id
+    config: ConfigModel = Field(default_factory=ConfigModel)
+    k_values: list[int] = Field(default_factory=lambda: [1, 3, 5, 10])
+
+
+class EvalRunResponse(BaseModel):
+    """Response for ``POST /eval/run`` — the aggregate summary of the run."""
+
+    run_id: str
+    summary: dict

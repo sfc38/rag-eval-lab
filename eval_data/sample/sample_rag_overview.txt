@@ -1,0 +1,21 @@
+Retrieval-Augmented Generation: A Short Overview
+
+Retrieval-Augmented Generation, commonly abbreviated as RAG, is a technique that combines a language model with an external knowledge source. Instead of relying only on what the model memorized during training, a RAG system retrieves relevant passages from a document collection and places them in the prompt before generating an answer.
+
+A typical RAG pipeline has five stages: document ingestion, chunking, embedding, retrieval, and generation. Each stage introduces choices that affect the final answer quality.
+
+Chunking is the process of splitting a long document into smaller pieces. If chunks are too large, the embedding becomes diluted and retrieval precision drops. If chunks are too small, a single chunk may not contain enough context to answer a question. Overlap between consecutive chunks helps preserve information that would otherwise be split across a boundary.
+
+Embeddings are dense vector representations of text. A good embedding places semantically similar passages close together in vector space, so that a question and its answer-bearing passage end up near each other. The choice of embedding model has a large effect on retrieval recall.
+
+Retrieval selects the top passages whose embeddings are most similar to the question embedding. The number of passages returned is controlled by a parameter called top_k. A similarity threshold can additionally discard weak matches that fall below a chosen score.
+
+Naive RAG systems exhibit three common failure modes. The first is retrieval miss, where the relevant passage is never retrieved. The second is evidence splitting, where the answer is divided across chunk boundaries so no single chunk is sufficient. The third is context neglect, where the relevant passage is retrieved but the language model ignores it and answers from memory instead.
+
+Reranking is an optional stage that reorders retrieved passages using a more expensive model, typically a cross-encoder. A cross-encoder reads the question and a passage together and produces a single relevance score. Reranking often improves ranking quality at the cost of additional latency.
+
+Evaluation is the part most teams skip. Without measurement, it is impossible to know whether a change to chunking or embeddings actually helped. Retrieval can be measured with recall at k, mean reciprocal rank, and normalized discounted cumulative gain. Answer quality can be measured with faithfulness and relevance judgments.
+
+Faithfulness asks whether every claim in the generated answer is supported by the retrieved context. An answer can be fluent and confident yet completely unfaithful if it introduces facts that are not present in the sources.
+
+A well-designed evaluation uses a golden dataset of questions paired with reference answers and the exact evidence spans that support them. The evidence spans make it possible to label retrieved chunks as relevant or irrelevant automatically, without re-labeling chunks by hand for every configuration.

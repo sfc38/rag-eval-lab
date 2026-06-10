@@ -126,6 +126,27 @@ class ChromaStore:
             )
         return chunks
 
+    def get_all_chunks(self, document_id: str, index_hash: str) -> list[StoredChunk]:
+        """Return every chunk in a document's index (used to derive ground-truth relevance).
+
+        Args:
+            document_id: Document identifier.
+            index_hash: Index-affecting config hash.
+
+        Returns:
+            list[StoredChunk]: All chunks ordered by chunk index. ``score`` is unused (0.0).
+        """
+        name = self._collection_name(document_id, index_hash)
+        collection = self._client.get_collection(name)
+        result = collection.get(include=["documents", "metadatas"])
+        chunks: list[StoredChunk] = []
+        for text, meta in zip(result["documents"], result["metadatas"]):
+            chunks.append(
+                StoredChunk(chunk_index=int(meta.get("chunk_index", -1)), text=text, score=0.0)
+            )
+        chunks.sort(key=lambda c: c.chunk_index)
+        return chunks
+
     def delete_document(self, document_id: str) -> None:
         """Delete every collection belonging to a document.
 
