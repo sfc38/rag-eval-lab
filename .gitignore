@@ -1,0 +1,26 @@
+# Internal docs (not pushed)
+CLAUDE.md
+docs/live_project_decisions.md
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# Runtime storage (uploads, chroma index, registry)
+backend/storage/
+
+# Experiment artifacts (keep the folder, not the runs)
+results/runs/*
+!results/runs/.gitkeep
+
+# Env / secrets
+.env
+*.env
+
+# OS / editor
+.DS_Store
+.ipynb_checkpoints/

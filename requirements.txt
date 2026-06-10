@@ -1,0 +1,23 @@
+# ── backend ──────────────────────────────────────────────
+fastapi
+uvicorn[standard]
+pydantic
+requests
+pypdfium2                 # PDF text extraction (Apache 2.0) — replaces AGPL pymupdf
+sentence-transformers     # embeddings + cross-encoder reranker (Apache 2.0)
+chromadb                  # local vector store (Apache 2.0)
+pyyaml                    # experiment config grids (Phase 3)
+# rank_bm25               # only if hybrid search is added later
+
+# ── frontend ─────────────────────────────────────────────
+streamlit
+pandas
+plotly
+
+# ── analysis (Phase 7) ───────────────────────────────────
+jupyter
+matplotlib
+
+# ── optional: online demo (Phase 8) ──────────────────────
+# google-genai
+# python-dotenv
